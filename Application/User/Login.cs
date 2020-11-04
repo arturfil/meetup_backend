@@ -30,21 +30,18 @@ namespace Application.User
       }
     }
 
-    public class Handler : IRequestHandler<Query, User>
-    {
+    public class Handler : IRequestHandler<Query, User> {
       private readonly UserManager<AppUser> _userManager;
       private readonly SignInManager<AppUser> _signInManager;
       private readonly IJwtGenerator _jwtGenerator;
 
-      public Handler(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IJwtGenerator jwtGenerator)
-      {
+      public Handler(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IJwtGenerator jwtGenerator) {
         this._jwtGenerator = jwtGenerator;
         this._signInManager = signInManager;
         this._userManager = userManager;
       }
 
-      public async Task<User> Handle(Query request, CancellationToken cancellationToken)
-      {
+      public async Task<User> Handle(Query request, CancellationToken cancellationToken) {
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user == null)
@@ -52,11 +49,9 @@ namespace Application.User
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
-        if (result.Succeeded)
-        {
+        if (result.Succeeded) {
           // TODO: generate token to return to user
-          return new User
-          {
+          return new User {
             DisplayName = user.DisplayName,
             Token = _jwtGenerator.CreatToken(user),
             Username = user.UserName,
