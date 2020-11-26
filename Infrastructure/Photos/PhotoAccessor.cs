@@ -28,7 +28,11 @@ namespace Infrastructure.Photos {
             if (file.Length > 0) {
                 using (var stream = file.OpenReadStream()) {
                     var uploadParams = new ImageUploadParams {
-                        File = new FileDescription(file.FileName, stream)
+                        File = new FileDescription(file.FileName, stream),
+                        Transformation = new Transformation()
+                            .Height(500).Width(500)
+                            .Crop("fill").Gravity("face")
+
                     };
                     uploadResult = _cloudinary.Upload(uploadParams);
                 }
@@ -44,7 +48,9 @@ namespace Infrastructure.Photos {
 
         public string DeletePhoto(string publicId)
         {
-            throw new NotImplementedException();
+            var deleteParams = new DeletionParams(publicId);
+            var result = _cloudinary.Destroy(deleteParams);
+            return result.Result == "ok" ? result.Result : null;
         }
     }
 
