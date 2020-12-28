@@ -37,6 +37,24 @@ namespace API
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureDevelopmentServices(IServiceCollection services) {
+          services.AddDbContext<DataContext>(opt => {
+              opt.UseLazyLoadingProxies();
+              opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+          });
+
+          ConfigureServices(services);
+        }
+
+        public void ConfigureProductionServices(IServiceCollection services) {
+          services.AddDbContext<DataContext>(opt => {
+              opt.UseLazyLoadingProxies();
+              opt.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
+          });
+
+          ConfigureServices(services);
+        }
+
         public void ConfigureServices(IServiceCollection services) 
         {
           services.AddControllers(opt => {
@@ -44,11 +62,6 @@ namespace API
             opt.Filters.Add(new AuthorizeFilter(policy));
           }).AddFluentValidation(cfg => cfg.RegisterValidatorsFromAssemblyContaining<Create>());
           
-          services.AddDbContext<DataContext>(opt => {
-              opt.UseLazyLoadingProxies();
-              opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
-          });
-
           services.AddCors(opt => {
               opt.AddPolicy("CorsPolicy", policy => {
                   policy
@@ -115,9 +128,9 @@ namespace API
             if (env.IsDevelopment()) {
                 // app.UseDeveloperExceptionPage();
             }
-
             // app.UseHttpsRedirection();
-
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
@@ -126,6 +139,7 @@ namespace API
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat");
+                endpoints.MapFallbackToController("Index", "Fallback");
             });
         }
     }
